@@ -16,8 +16,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, shellapi, AppEvnts, Vcl.StdCtrls, TimeTrackerLogInterface, Vcl.Menus, Vcl.ExtCtrls,
-  Vcl.ComCtrls;
+  Dialogs, shellapi, AppEvnts, StdCtrls, TimeTrackerLogInterface, Menus, ExtCtrls,
+  ComCtrls;
 
 const
   WM_ICONTRAY = WM_USER + 1;

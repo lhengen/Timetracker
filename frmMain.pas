@@ -47,6 +47,7 @@ type
   private
     TrayIconData: TNotifyIconData;
     FTimeTrackerLog :ITimeTrackerLog;
+    procedure DismissDialog;
   public
     procedure TrayMessage(var Msg: TMessage); message WM_ICONTRAY;
   end;
@@ -64,9 +65,12 @@ uses
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
 begin
+  //form should always be hidden when timer expires
   Timer1.Enabled := False;
-  MainForm.ShowModal;  //default action is caHide
-  Timer1.Enabled := True;
+  if not MainForm.Visible then
+    MainForm.ShowModal  //default action is caHide
+  else
+    MainForm.Activate;
 end;
 
 procedure TMainForm.TrayMessage(var Msg: TMessage);
@@ -97,13 +101,23 @@ begin
        Delete(Count - 1);
   end;
   edActivityDescription.ItemIndex := 0;  //make last entered text current one
+  DismissDialog;
+end;
+
+procedure TMainForm.DismissDialog;
+begin
   ModalResult := mrOk;
+  //only start timer again after dialog has been dismissed so popup Interval is
+  //consistent and manual popups don't cause short intervals
+  //this means user must always dismiss dialog in order to ensure time tracking works
+  //it also means user can take their time entering in the comment without affecting interval
+  Timer1.Enabled := True;
 end;
 
 procedure TMainForm.btIgnoreClick(Sender: TObject);
 begin
   //don't attempt to write a log entry
-  ModalResult := mrOk;
+  DismissDialog;
 end;
 
 procedure TMainForm.Exit1Click(Sender: TObject);

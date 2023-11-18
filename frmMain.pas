@@ -70,7 +70,10 @@ begin
   if not MainForm.Visible then
     MainForm.ShowModal  //default action is caHide
   else
+  begin
     MainForm.Activate;
+    MainForm.BringToFront;
+  end;
 end;
 
 procedure TMainForm.TrayMessage(var Msg: TMessage);

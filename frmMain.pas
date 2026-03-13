@@ -44,6 +44,7 @@ type
     procedure mnuOpenClick(Sender: TObject);
     procedure mnuShowFolderinExplorerClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     TrayIconData: TNotifyIconData;
     FTimeTrackerLog :ITimeTrackerLog;
@@ -64,15 +65,22 @@ uses
 {$R *.dfm}
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
+var
+  PrevForegroundWnd: HWND;
 begin
   //form should always be hidden when timer expires
   Timer1.Enabled := False;
-  if not MainForm.Visible then
-    MainForm.ShowModal  //default action is caHide
+  if MainForm.Visible then
+  begin
+    SetForegroundWindow(MainForm.Handle);
+    Timer1.Enabled := True;
+  end
   else
   begin
-    MainForm.Activate;
-    MainForm.BringToFront;
+    PrevForegroundWnd := GetForegroundWindow;
+    MainForm.ShowModal;  //default action is caHide
+    if IsWindow(PrevForegroundWnd) then
+      SetForegroundWindow(PrevForegroundWnd);
   end;
 end;
 
@@ -84,7 +92,11 @@ begin
       if MainForm.Visible then
         MainForm.SetFocus
       else
+      begin
+        Timer1.Enabled := False;
         MainForm.ShowModal;
+        Timer1.Enabled := True;
+      end;
     end;
     WM_RBUTTONDOWN:
     begin
@@ -119,13 +131,26 @@ end;
 
 procedure TMainForm.btIgnoreClick(Sender: TObject);
 begin
-  //don't attempt to write a log entry
+  //don't attempt to write a log entry, revert to last accepted text
+  if edActivityDescription.Items.Count > 0 then
+    edActivityDescription.ItemIndex := 0
+  else
+    edActivityDescription.Text := '';
   DismissDialog;
 end;
 
 procedure TMainForm.Exit1Click(Sender: TObject);
 begin
   MainForm.Close;
+end;
+
+procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (Shift = [ssAlt]) and (Key = Ord('I')) then
+  begin
+    Key := 0;
+    btIgnoreClick(btIgnore);
+  end;
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
@@ -170,9 +195,17 @@ end;
 procedure TMainForm.mnuOpenClick(Sender: TObject);
 begin
   if MainForm.Visible then
-    MainForm.Activate
+  begin
+    SetForegroundWindow(MainForm.Handle);
+    edActivityDescription.SetFocus;
+    edActivityDescription.SelectAll;
+  end
   else
+  begin
+    Timer1.Enabled := False;
     MainForm.ShowModal;
+    Timer1.Enabled := True;
+  end;
 end;
 
 procedure TMainForm.mnuOpenLogClick(Sender: TObject);
